@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { prisma } from "@/lib/db";
 import { ProductForm } from "@/components/admin/product-form";
+import { getProductById } from "@/lib/products";
 import { parseImages } from "@/lib/images";
 
 export default async function EditProductPage({
@@ -11,7 +11,7 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await prisma.product.findUnique({ where: { id } });
+  const product = await getProductById(id);
   if (!product) notFound();
 
   return (

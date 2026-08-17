@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { prisma } from "@/lib/db";
+import { prisma, isDbConfigured } from "@/lib/db";
 import { getSiteUrl } from "@/lib/site";
 
 const siteUrl = getSiteUrl();
@@ -13,13 +13,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   let products: { slug: string; updatedAt: Date }[] = [];
-  try {
-    products = await prisma.product.findMany({
-      where: { isAvailable: true },
-      select: { slug: true, updatedAt: true },
-    });
-  } catch {
-    // Database unavailable at build time - return static routes only.
+  if (isDbConfigured()) {
+    try {
+      products = await prisma.product.findMany({
+        where: { isAvailable: true },
+        select: { slug: true, updatedAt: true },
+      });
+    } catch {
+      // Database unreachable - return static routes only.
+    }
   }
 
   return [

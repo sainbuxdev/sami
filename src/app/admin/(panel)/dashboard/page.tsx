@@ -5,15 +5,14 @@ import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/layout/empty-state";
 import { getCurrentAdmin } from "@/lib/auth";
-import { getDashboardStats } from "@/lib/products";
-import { prisma } from "@/lib/db";
+import { getDashboardStats, getRecentProducts } from "@/lib/products";
 import { greeting, formatPrice, formatBattery } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const [admin, stats, recent] = await Promise.all([
     getCurrentAdmin(),
     getDashboardStats(),
-    prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+    getRecentProducts(5),
   ]);
 
   return (

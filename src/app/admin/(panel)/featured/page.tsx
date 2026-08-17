@@ -1,11 +1,8 @@
-import { prisma } from "@/lib/db";
+import { getFeaturedForAdmin } from "@/lib/products";
 import { ProductsManager } from "@/components/admin/products-manager";
 
 export default async function FeaturedPage() {
-  const products = await prisma.product.findMany({
-    where: { featured: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const products = await getFeaturedForAdmin();
 
   return (
     <div>

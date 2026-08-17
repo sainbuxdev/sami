@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { prisma, isDbConfigured } from "@/lib/db";
 import type { StoreSettings } from "@/types";
 
 const FALLBACK: StoreSettings = {
@@ -13,6 +13,7 @@ const FALLBACK: StoreSettings = {
  * This is why the WhatsApp number is never hardcoded across the app.
  */
 export async function getSettings(): Promise<StoreSettings> {
+  if (!isDbConfigured()) return FALLBACK;
   try {
     const row = await prisma.settings.findUnique({ where: { id: "store" } });
     if (!row) return FALLBACK;

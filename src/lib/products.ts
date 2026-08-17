@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
+import { prisma, isDbConfigured } from "@/lib/db";
 import type { DashboardStats, SortOption } from "@/types";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Product } from "@prisma/client";
 import { slugify, randomSuffix } from "@/lib/utils";
 
 /**
@@ -46,7 +46,10 @@ export interface ProductFilterOptions {
 }
 
 /** Public listing: only available products, with optional search, filters + sort. */
-export async function getAvailableProducts(opts?: ProductFilterOptions) {
+export async function getAvailableProducts(
+  opts?: ProductFilterOptions,
+): Promise<Product[]> {
+  if (!isDbConfigured()) return [];
   const search = opts?.search?.trim();
   const model = opts?.model?.trim();
   const sort = opts?.sort ?? "newest";
@@ -61,26 +64,31 @@ export async function getAvailableProducts(opts?: ProductFilterOptions) {
 
   const nameConditions = [search, model].filter(Boolean) as string[];
 
-  return prisma.product.findMany({
-    where: {
-      isAvailable: true,
-      ...(nameConditions.length
-        ? {
-            AND: nameConditions.map((term) => ({
-              name: { contains: term, mode: "insensitive" as const },
-            })),
-          }
-        : {}),
-      ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
-      ...(opts?.minCondition ? { condition: { gte: opts.minCondition } } : {}),
-    },
-    orderBy: ORDER_BY[sort],
-  });
+  try {
+    return await prisma.product.findMany({
+      where: {
+        isAvailable: true,
+        ...(nameConditions.length
+          ? {
+              AND: nameConditions.map((term) => ({
+                name: { contains: term, mode: "insensitive" as const },
+              })),
+            }
+          : {}),
+        ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
+        ...(opts?.minCondition ? { condition: { gte: opts.minCondition } } : {}),
+      },
+      orderBy: ORDER_BY[sort],
+    });
+  } catch {
+    return [];
+  }
 }
 
-export async function getFeaturedProducts(limit = 4) {
-  // The home page is statically generated, so guard against the database being
-  // unreachable at build time (e.g. first deploy before migrations run).
+export async function getFeaturedProducts(limit = 4): Promise<Product[]> {
+  // Guard against a missing/unreachable database (e.g. first deploy before
+  // DATABASE_URL is set) so statically-rendered pages still build cleanly.
+  if (!isDbConfigured()) return [];
   try {
     return await prisma.product.findMany({
       where: { isAvailable: true, featured: true },
@@ -92,24 +100,74 @@ export async function getFeaturedProducts(limit = 4) {
   }
 }
 
-export async function getProductBySlug(slug: string) {
-  return prisma.product.findUnique({ where: { slug } });
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  if (!isDbConfigured()) return null;
+  try {
+    return await prisma.product.findUnique({ where: { slug } });
+  } catch {
+    return null;
+  }
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+  if (!isDbConfigured()) return null;
+  try {
+    return await prisma.product.findUnique({ where: { id } });
+  } catch {
+    return null;
+  }
 }
 
 /** Admin listing: everything, newest first, optional search. */
-export async function getAllProducts(search?: string) {
+export async function getAllProducts(search?: string): Promise<Product[]> {
+  if (!isDbConfigured()) return [];
   const q = search?.trim();
-  return prisma.product.findMany({
-    where: q ? { name: { contains: q, mode: "insensitive" } } : undefined,
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await prisma.product.findMany({
+      where: q ? { name: { contains: q, mode: "insensitive" } } : undefined,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+/** Admin: all featured products (including sold ones). */
+export async function getFeaturedForAdmin(): Promise<Product[]> {
+  if (!isDbConfigured()) return [];
+  try {
+    return await prisma.product.findMany({
+      where: { featured: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getRecentProducts(limit = 5): Promise<Product[]> {
+  if (!isDbConfigured()) return [];
+  try {
+    return await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [total, available, featured] = await Promise.all([
-    prisma.product.count(),
-    prisma.product.count({ where: { isAvailable: true } }),
-    prisma.product.count({ where: { featured: true } }),
-  ]);
-  return { total, available, sold: total - available, featured };
+  const empty = { total: 0, available: 0, sold: 0, featured: 0 };
+  if (!isDbConfigured()) return empty;
+  try {
+    const [total, available, featured] = await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { isAvailable: true } }),
+      prisma.product.count({ where: { featured: true } }),
+    ]);
+    return { total, available, sold: total - available, featured };
+  } catch {
+    return empty;
+  }
 }
