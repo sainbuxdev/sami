@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #0b0b0f;
+  --surface: #ffffff;
+  --muted: #6b6b76;
+}
+
+@layer base {
+  * {
+    @apply border-haze-200;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white text-ink antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    @apply bg-ink text-white;
+  }
+  /* Consistent, accessible focus ring */
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-ink/70 ring-offset-2 ring-offset-white rounded-lg;
+  }
+}
+
+@layer components {
+  /* Frosted-glass surface used for the sticky nav and overlays */
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl backdrop-saturate-150;
+  }
+  .glass-dark {
+    @apply bg-ink/70 backdrop-blur-xl backdrop-saturate-150;
+  }
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-haze-200/70 rounded-xl;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+  /* Soft page-section gradient wash */
+  .wash {
+    background:
+      radial-gradient(60% 60% at 50% 0%, rgba(99, 102, 241, 0.06), transparent 70%),
+      radial-gradient(50% 50% at 100% 0%, rgba(37, 99, 235, 0.05), transparent 60%);
+  }
+}
+
+/* Respect users who prefer reduced motion: disable non-essential animation. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
