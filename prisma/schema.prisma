@@ -9,8 +9,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Runtime queries go through the transaction pooler (pgbouncer).
+  url       = env("DATABASE_URL")
+  // Schema changes (db push / migrate) use the direct session pooler.
+  directUrl = env("DIRECT_URL")
 }
 
 /// A single iPhone listing in the store's inventory.
