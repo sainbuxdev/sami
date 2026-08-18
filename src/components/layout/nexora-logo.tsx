@@ -15,8 +15,8 @@ export function NexoraLogo({
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <svg
-        viewBox="0 0 48 48"
-        className="h-7 w-7 flex-shrink-0 overflow-visible"
+        viewBox="0 0 40 40"
+        className="h-7 w-7 flex-shrink-0"
         role="img"
         aria-label="Nexora Tech"
       >
@@ -26,14 +26,23 @@ export function NexoraLogo({
             <stop offset="1" stopColor="#3b5bdb" />
           </linearGradient>
         </defs>
-        {/* left leg */}
-        <polygon points="9,40 9,8 18,8 18,40" fill="#1b2a5e" />
-        {/* diagonal ribbon (top-left to bottom-right) */}
-        <polygon points="18,8 27,8 39,40 30,40" fill="url(#nx-grad)" />
-        {/* right leg */}
-        <polygon points="30,40 30,8 39,8 39,40" fill="#3b5bdb" />
-        {/* teal accent facet at the top of the right leg */}
-        <polygon points="30,8 39,8 39,17" fill="#7fe3d0" />
+        {/* Clean "N" drawn as one stroke: left up, diagonal down, right up. */}
+        <path
+          d="M9 31 V9 L31 31 V9"
+          fill="none"
+          stroke="url(#nx-grad)"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Teal accent on the top of the right leg. */}
+        <path
+          d="M31 9 V15"
+          fill="none"
+          stroke="#2dd4bf"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
       </svg>
       {showText && (
         <span className="text-sm font-semibold leading-none tracking-tight text-[#1b2a5e]">
