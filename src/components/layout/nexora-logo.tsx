@@ -2,18 +2,18 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Nexora Tech logo lockup, rendered from the brand asset at
- * /public/nexora-tech.png (mark + wordmark). Sized by height; width auto-scales.
+ * Nexora Tech logo lockup, rendered from the brand asset
+ * /public/nexora-logo.png (mark + wordmark, whitespace-trimmed).
+ * Sized by height; width auto-scales to the logo's aspect ratio.
  */
 export function NexoraLogo({ className }: { className?: string }) {
   return (
     <Image
-      src="/nexora-tech.png"
+      src="/nexora-logo.png"
       alt="Nexora Tech"
-      width={1408}
-      height={768}
-      className={cn("h-10 w-auto", className)}
-      priority={false}
+      width={584}
+      height={422}
+      className={cn("h-11 w-auto", className)}
     />
   );
 }
